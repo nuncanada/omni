@@ -1,0 +1,11 @@
+Siege: Key/Value store in Haskell: https://github.com/DanielWaterworth/siege
+
+Acid-state and IxSet
+
+HaskellDB 
+
+Key Value Store in Haskell (inspired by Redis): https://github.com/honza/redish
+
+Graph database in haskell: https://github.com/nikita-volkov/graph-db
+
+

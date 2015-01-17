@@ -1,0 +1,139 @@
+
+
+Relations as 1st Order Entitites.
+Types of relations:  Arbitrary relations with constraints 
+(Father, Mother have to be another person with sex M or F).
+Relations with explicit sizes ex.: 2..Inf
+
+Possibility of adding properties to Relations
+"Automatic Joins"!!! (NO JOINs)
+
+This ends the discussion Surrogate Keys vs Natural keys. A discussion generated
+because SQL standard was missing the fundamental concept of relations between entities.
+
+NO NULLS! ADTs solve the problem as it should:
+(Unknown|Father) father
+
+
+* The time problem:
+--- The idea is only to store a datastruct with miliseconds (micro?!) from a given time without any timezone etc etc.... 
+    Unique time accross the globe.
+--- Given the correct localtime time, within the timezone, with jump seconds and every other rule
+    is responsibility of the presentation layer, not of the storage one.
+
+
+Non-reusable:
+
+
+Start Point: Major of age (m = Start of point of the original reusable fragment)
+Restrictions: m.sex = Female
+Return m.name, m.age, m.father
+
+Returned parts are not used for reusable fragments. 
+For ACL purposes sometimes used with VIEWs, there are explicit ACLs 
+for columns... Also there should be ACLs for rows.
+
+ADTs!!!
+
+
+CREATE ENTITY Person
+{
+	String name,
+	Date birthday,
+	(Male|Female) Sex,
+	
+	DERIVED age = years(birthday - current_time) 
+}
+
+CREATE RELATION (Unknown|Person) 2..2 -> parent of (is child of) -> 0..Inf Person 
+{
+}
+
+Query reusable fragments:
+
+CREATE DEFINITION Person[major of age] =
+Restrictions: major of age.age >= 21
+
+CREATE DEFINITION Person[father] -> father of (father) -> Person[child] =
+Restrictions: father -> parent of -> child, father.sex = Male
+
+CREATE DEFINITION Person[mother] -> mother of (mother) -> Person[child] =
+Restrictions: mother -> parent of -> child, mother.sex = Female
+
+
+
+Automatics JOIN:
+
+
+Start Point: Major of age major
+Restrictions: major.sex = Female, major.age < 21, major.father.age > 50
+Return: name, age, father.name
+
+Or
+
+Start Point: Major of age major
+Restrictions: major.sex = Female, major.age < 21, father -> father of -> major, father.age > 50
+Return: name, age, father.name
+
+CREATE ENTITY Event
+{
+	String name,
+	Date StartDate,
+	Date EndDate,
+	BinaryFile handout,
+}
+
+CREATE ENTITY Company
+{
+	String name,
+	UniqueIdentifier id
+}
+
+
+CREATE DEFINITION JobDescription = (Middle-Manager|Director|Vice-President|President)
+
+CREATE RELATION Person 0..Inf -> works at (employs) -> 0..1 Company 
+{
+	String CorporateTitle,
+	JobDescription job,
+}
+
+CREATE DEFINITION Color = (Red|Black|Blue|Green)
+
+CREATE RELATION Person[guest] 0..Inf -> is invited to (has an invitation for) ->  0..Inf Event
+{
+	Color color,
+}
+
+
+CREATE RELATION Person[representant] 0..1 -> is representant of (represents) -> 1..1 Person[represented] -> at event -> 1..1 Event[event]
+Restrictions: represented -> has an invitation for (was invited to) -> event
+{
+	Color color,
+}
+
+CREATE RELATION (guest|representant) 1..1 -> checked in -> 0..n Event
+{
+	DateTime time_of_arrival,
+	(EntryA|EntryB|EntryC) entrance, 
+} 
+
+
+Self-reference
+
+
+CREATE RELATION employee 0..Inf -> has boss (is boss) -> 1..1 employee
+{
+} 
+
+
+Functions to deal with acyclic directed graphs:
+
+SIBBLING()
+ANCESTOR()
+DESCENDENT()
+ROOT_DISTANCE()
+
+Function to deal with text search (that will use Lucene underneath) 
+
+Functions to deal with graphs with cycles?
