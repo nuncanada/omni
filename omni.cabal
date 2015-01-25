@@ -38,7 +38,7 @@ Executable omni
     esqueleto                 >= 2.1,
     persistent                >= 2.1,
     persistent-postgresql     >= 2.1,
-    snaplet-persistent        >= 0.4.1
+    snaplet-persistent        >= 0.4.1.1
 
   if flag(old-base)
     build-depends:
