@@ -15,13 +15,8 @@ module Site
   ) where
 
 ------------------------------------------------------------------------------
-import           Control.Applicative
 import           Control.Lens
-import           Control.Monad.Logger
 import           Control.Monad.State
-import           Control.Monad.Trans
-import           Control.Monad.Trans.Control
-import           Control.Monad.Trans.Reader
 import           Data.ByteString                             (ByteString)
 import           Data.Map.Syntax                             (( ## ))
 import           Data.Monoid
@@ -41,18 +36,10 @@ import           Snap.Snaplet.Session
 import           Snap.Snaplet.Session.Backends.CookieSession
 import           Snap.Util.FileServe
 
-import           Control.Applicative                         (pure)
-import           Control.Monad.Logger                        (MonadLogger,
-                                                              monadLoggerLog)
-
-
 
 ------------------------------------------------------------------------------
 import           Application
 
-
-instance MonadLogger IO where
-    monadLoggerLog _ _ _ = pure $ pure ()
 
 ------------------------------------------------------------------------------
 -- | Render login form
@@ -100,10 +87,12 @@ routes = [ ("/login",     with auth handleLoginSubmit)
          , ("",           serveDirectory "static")
          ]
 
+fooHandler :: Handler App App ()
 fooHandler = do
     results <- runPersist $ P.selectList [] []
     liftIO $ print (map db2au results)
 
+addHandler :: Handler App App ()
 addHandler = do
     mname <- getParam "uname"
     let name = maybe "guest" T.decodeUtf8 mname
