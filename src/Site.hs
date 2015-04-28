@@ -15,28 +15,24 @@ module Site
   ) where
 
 ------------------------------------------------------------------------------
+import           Control.Applicative
 import           Control.Lens
 import           Control.Monad.State
-import           Data.ByteString                             (ByteString)
-import           Data.Map.Syntax                             (( ## ))
+import           Data.ByteString (ByteString)
+import           Data.Map.Syntax ((##))
 import           Data.Monoid
-import qualified Data.Text                                   as T
-import qualified Data.Text.Encoding                          as T
+import qualified Data.Text as T
 import qualified Database.Persist                            as P
 import           Database.Persist.Sql
-import qualified Heist.Interpreted                           as I
-import           Snap
 import           Snap.Core
 import           Snap.Snaplet
 import           Snap.Snaplet.Auth
 import           Snap.Snaplet.Auth.Backends.Persistent
 import           Snap.Snaplet.Heist
 import           Snap.Snaplet.Persistent
-import           Snap.Snaplet.Session
 import           Snap.Snaplet.Session.Backends.CookieSession
 import           Snap.Util.FileServe
-
-
+import qualified Heist.Interpreted as I
 ------------------------------------------------------------------------------
 import           Application
 
@@ -78,26 +74,12 @@ handleNewUser = method GET handleForm <|> method POST handleFormSubmit
 ------------------------------------------------------------------------------
 -- | The application's routes.
 routes :: [(ByteString, Handler App App ())]
-routes = [ ("/login",     with auth handleLoginSubmit)
-         , ("/logout",    with auth handleLogout)
-         , ("/new_user",  with auth handleNewUser)
-         , ("/hello",     writeText "hello")
-         , ("foo",        fooHandler)
-         , ("add/:uname", addHandler)
-         , ("",           serveDirectory "static")
+routes = [ ("/login",    with auth handleLoginSubmit)
+         , ("/logout",   with auth handleLogout)
+         , ("/new_user", with auth handleNewUser)
+         , ("",          serveDirectory "static")
          ]
 
-fooHandler :: Handler App App ()
-fooHandler = do
-    results <- runPersist $ P.selectList [] []
-    liftIO $ print (map db2au results)
-
-addHandler :: Handler App App ()
-addHandler = do
-    mname <- getParam "uname"
-    let name = maybe "guest" T.decodeUtf8 mname
-    u <- with auth $ createUser name ""
-    liftIO $ print u
 
 ------------------------------------------------------------------------------
 -- | The application initializer.
@@ -105,11 +87,13 @@ app :: SnapletInit App App
 app = makeSnaplet "app" "An snaplet example application." Nothing $ do
     h <- nestSnaplet "" heist $ heistInit "templates"
     s <- nestSnaplet "sess" sess $
-         initCookieSessionManager "site_key.txt" "sess" (Just 3600)
+           initCookieSessionManager "site_key.txt" "sess" (Just 3600)
     d <- nestSnaplet "db" db $ initPersist (runMigrationUnsafe migrateAuth)
+    -- NOTE: We're using initJsonFileAuthManager here because it's easy and
+    -- doesn't require any kind of database server to run.  In practice,
+    -- you'll probably want to change this to a more robust auth backend.
     a <- nestSnaplet "auth" auth $
-         initPersistAuthManager sess (persistPool $ view snapletValue d)
-
+           initPersistAuthManager sess (persistPool $ view snapletValue d)
     addRoutes routes
     addAuthSplices h auth
     return $ App h s d a

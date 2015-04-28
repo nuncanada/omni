@@ -93,6 +93,7 @@ main = do
 getConf :: IO (Config Snap AppConfig)
 getConf = commandLineAppConfig defaultConfig
 
+
 ------------------------------------------------------------------------------
 -- | This function generates the the site handler and cleanup action from the
 -- configuration. In production mode, this action is only run once. In
